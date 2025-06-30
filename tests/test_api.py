@@ -12,13 +12,13 @@ def test_adresse_valide_paris():
     Teste une adresse valide à Paris.
     On s'attend à un code 200 et à des données de couverture pour tous les opérateurs.
     """
-    nom_adresse = "Champs-Élysées"
-    adresse = "133 Av. des Champs-Élysées, 75008 Paris"
+    nom_adresse = "Musée du Louvre"
+    adresse = "Musée du Louvre, 75001 Paris"
     
-    response = client.post("/coverage", json={nom_adresse: adresse})
+    response = client.post("/coverage", json={"locations": {nom_adresse: adresse}})
     
     assert response.status_code == 200
-    data = response.json()
+    data = response.json()["results"]
     
     assert nom_adresse in data
     couverture_adresse = data[nom_adresse]
@@ -37,17 +37,18 @@ def test_adresse_valide_paris():
 def test_adresse_invalide():
     """
     Teste une adresse qui ne peut pas être géocodée.
-    On s'attend à un code 404 (Not Found) avec un message d'erreur.
+    On s'attend à un code 200 et à un message d'erreur dans le JSON.
     """
     nom_adresse = "Adresse Inexistante"
     adresse = "123 Rue du Nulle Part, 99999 Inexistant"
     
-    response = client.post("/coverage", json={nom_adresse: adresse})
+    response = client.post("/coverage", json={"locations": {nom_adresse: adresse}})
     
-    assert response.status_code == 404
-    data = response.json()
-    assert "detail" in data
-    assert f"Impossible de géocoder l'adresse : {adresse}" in data["detail"]
+    assert response.status_code == 200
+    data = response.json()["results"]
+    assert nom_adresse in data
+    assert "error" in data[nom_adresse]
+    assert "Impossible de géocoder" in data[nom_adresse]["error"]
 
 def test_requete_malformee_pas_de_json():
     """
@@ -63,39 +64,33 @@ def test_requete_avec_plusieurs_adresses():
     La réponse doit contenir les résultats pour chaque adresse.
     """
     adresses = {
-        "Tour Eiffel": "Champ de Mars, 5 Av. Anatole France, 75007 Paris",
-        "Notre Dame": "6 Parvis Notre-Dame - Pl. Jean-Paul II, 75004 Paris"
+        "Musée du Louvre": "Musée du Louvre, 75001 Paris",
+        "Notre Dame": "Notre Dame, Paris"
     }
     
-    response = client.post("/coverage", json=adresses)
+    response = client.post("/coverage", json={"locations": adresses})
     
     assert response.status_code == 200
-    data = response.json()
+    data = response.json()["results"]
     
-    assert "Tour Eiffel" in data
+    assert "Musée du Louvre" in data
     assert "Notre Dame" in data
-    assert "orange" in data["Tour Eiffel"]
+    assert "orange" in data["Musée du Louvre"]
     assert "free" in data["Notre Dame"]
 
 def test_adresse_hors_de_france():
     """
     Teste une adresse valide mais située hors de la zone de couverture (France).
-    On s'attend à un code 200, mais avec une couverture nulle pour tous les opérateurs.
+    On s'attend à un code 200 et à un message d'erreur dans le JSON car le géocodage est limité à la France.
     """
     nom_adresse = "New York"
     adresse = "Statue of Liberty, New York, NY, USA"
 
-    response = client.post("/coverage", json={nom_adresse: adresse})
+    response = client.post("/coverage", json={"locations": {nom_adresse: adresse}})
     
     assert response.status_code == 200
-    data = response.json()
+    data = response.json()["results"]
     
     assert nom_adresse in data
-    couverture_adresse = data[nom_adresse]
-    
-    # Vérifie que la couverture est fausse pour toutes les technologies de tous les opérateurs
-    for op in OPERATORS:
-        assert op in couverture_adresse
-        assert not couverture_adresse[op]["2G"]
-        assert not couverture_adresse[op]["3G"]
-        assert not couverture_adresse[op]["4G"]
+    assert "error" in data[nom_adresse]
+    assert "Impossible de géocoder" in data[nom_adresse]["error"]
