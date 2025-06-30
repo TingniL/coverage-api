@@ -29,7 +29,7 @@ def geocode_address(address: str) -> Optional[Tuple[float, float]]:
         Un tuple (latitude, longitude) si le géocodage réussit, sinon None.
     """
     try:
-        location = geocode(address, country_codes="FR", addressdetails=False)
+        location = geocode(address, country_codes="FR", addressdetails=False) #Limiter la recherche à la France
         if location:
             logging.info(f"Géocodage réussi pour '{address}': ({location.latitude}, {location.longitude})")
             return (location.latitude, location.longitude)

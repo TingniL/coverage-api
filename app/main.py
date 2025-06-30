@@ -7,7 +7,7 @@ import asyncio
 import logging
 from typing import Dict, Any, List
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Body
 from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel, Field
 
@@ -22,16 +22,6 @@ app = FastAPI(
     description="Fournit la couverture mobile 2G/3G/4G pour des adresses en France.",
     version="1.0.0",
 )
-
-class CoverageRequest(BaseModel):
-    locations: Dict[str, str] = Field(
-        ...,
-        example={
-            "Tour Eiffel": "Champ de Mars, 5 Av. Anatole France, 75007 Paris",
-            "Adresse Invalide": "123 Rue du Nulle Part",
-        },
-        description="Un dictionnaire où les clés sont des noms de lieux et les valeurs sont les adresses à géocoder."
-    )
 
 class CoverageResponse(BaseModel):
     results: Dict = Field(
@@ -48,21 +38,28 @@ class CoverageResponse(BaseModel):
     )
 
 @app.post("/coverage", response_model=CoverageResponse, tags=["Couverture"])
-async def get_coverage(request: CoverageRequest):
+async def get_coverage(
+    locations: Dict[str, str] = Body(
+        ...,
+        example={
+            "id1": "157 boulevard MacDonald 75019 Paris",
+            "id2": "5 avenue Anatole France 75007 Paris",
+        },
+    )
+):
     """
     Accepte une ou plusieurs adresses et retourne leur couverture réseau mobile.
     """
-    logging.info(f"Requête de couverture reçue pour {len(request.locations)} adresses.")
-    addresses_to_process = request.locations.items()
+    logging.info(f"Requête de couverture reçue pour {len(locations)} adresses.")
+    addresses_to_process = locations.items()
     
-    # Étape 1: Géocoder toutes les adresses en parallèle
     async def geocode_task(name, address):
         try:
             # Exécute la fonction synchrone de géocodage dans un thread séparé
             # pour ne pas bloquer la boucle d'événements asyncio.
             coords = await run_in_threadpool(geocode_address, address)
             if coords is None:
-                # The geocoder already logs the warning.
+
                 return name, {"error": f"Impossible de géocoder l'adresse : {address}"}
             return name, {"coords": coords}
         except Exception as e:
@@ -72,7 +69,6 @@ async def get_coverage(request: CoverageRequest):
     geocoding_tasks = [geocode_task(name, addr) for name, addr in addresses_to_process]
     geocoding_results = await asyncio.gather(*geocoding_tasks)
 
-    # Étape 2: Calculer la couverture pour les adresses géocodées avec succès
     coverage_tasks = []
     final_results = {}
     successful_geocodes = 0

@@ -36,14 +36,11 @@ def clean_operator_names(df: pd.DataFrame) -> pd.DataFrame:
 def convert_coordinates(df: pd.DataFrame) -> pd.DataFrame:
     """Conversion des coordonnées en lot (Lambert93 -> WGS84)"""
     try:
-        # Création du transformateur
         transformer = pyproj.Transformer.from_crs("epsg:2154", "epsg:4326")
         
-        # Conversion en lot
         print("Conversion des coordonnées en cours...")
         lat, lon = transformer.transform(df["x"].values, df["y"].values)
         
-        # Ajout des colonnes de latitude et longitude
         df["lat"] = lat
         df["lon"] = lon
         
@@ -55,8 +52,8 @@ def validate_coordinates(df: pd.DataFrame) -> None:
     """Validation des coordonnées converties"""
     # Limites approximatives de la France
     FRANCE_BOUNDS = {
-        'lat': (41.0, 52.0),  # Latitude
-        'lon': (-5.0, 10.0)   # Longitude
+        'lat': (41.0, 52.0),
+        'lon': (-5.0, 10.0)
     }
     
     invalid_coords = (
@@ -83,15 +80,12 @@ def process_data() -> None:
         print(f"Fichier d'entrée : {RAW_CSV}")
         print(f"Fichier de sortie : {PARQUET_PATH}")
         
-        # 2. Lecture du CSV
         print("Lecture du fichier CSV...")
         df = pd.read_csv(RAW_CSV)
         print(f"Nombre de lignes lues : {len(df)}")
         
-        # 3. Validation des données
         validate_data(df)
         
-        # 4. Renommage des colonnes
         print("Standardisation des noms de colonnes...")
         df.rename(columns={
             "Operateur": "operator",
@@ -100,7 +94,6 @@ def process_data() -> None:
             "4G": "is4g"
         }, inplace=True)
         
-        # 5. Nettoyage des noms d'opérateurs
         print("Nettoyage des données opérateurs...")
         initial_count = len(df)
         df = clean_operator_names(df)
@@ -108,14 +101,12 @@ def process_data() -> None:
         if filtered_count > 0:
             print(f"Filtrage : {filtered_count} antennes d'opérateurs non configurés ont été exclues")
         
-        # 6. Conversion des coordonnées
         df = convert_coordinates(df)
         
-        # 7. Sauvegarde des résultats
         print(f"Sauvegarde des données traitées...")
         df.to_parquet(PARQUET_PATH, index=False)
         
-        # 8. Statistiques
+
         print("\nTraitement terminé !")
         print(f"Nombre total d'antennes : {len(df)}")
         print("\nStatistiques par opérateur :")

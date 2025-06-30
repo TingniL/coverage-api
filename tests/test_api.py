@@ -15,7 +15,7 @@ def test_adresse_valide_paris():
     nom_adresse = "Musée du Louvre"
     adresse = "Musée du Louvre, 75001 Paris"
     
-    response = client.post("/coverage", json={"locations": {nom_adresse: adresse}})
+    response = client.post("/coverage", json={nom_adresse: adresse})
     
     assert response.status_code == 200
     data = response.json()["results"]
@@ -42,7 +42,7 @@ def test_adresse_invalide():
     nom_adresse = "Adresse Inexistante"
     adresse = "123 Rue du Nulle Part, 99999 Inexistant"
     
-    response = client.post("/coverage", json={"locations": {nom_adresse: adresse}})
+    response = client.post("/coverage", json={nom_adresse: adresse})
     
     assert response.status_code == 200
     data = response.json()["results"]
@@ -68,7 +68,7 @@ def test_requete_avec_plusieurs_adresses():
         "Notre Dame": "Notre Dame, Paris"
     }
     
-    response = client.post("/coverage", json={"locations": adresses})
+    response = client.post("/coverage", json=adresses)
     
     assert response.status_code == 200
     data = response.json()["results"]
@@ -86,7 +86,7 @@ def test_adresse_hors_de_france():
     nom_adresse = "New York"
     adresse = "Statue of Liberty, New York, NY, USA"
 
-    response = client.post("/coverage", json={"locations": {nom_adresse: adresse}})
+    response = client.post("/coverage", json={nom_adresse: adresse})
     
     assert response.status_code == 200
     data = response.json()["results"]

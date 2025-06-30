@@ -89,11 +89,8 @@ Vous pouvez utiliser `curl` ou tout autre client HTTP pour interroger l'API.
 curl -X POST "http://127.0.0.1:8000/coverage" \
 -H "Content-Type: application/json" \
 -d '{
-  "locations": {
-    "Tour Eiffel": "Champ de Mars, 5 Av. Anatole France, 75007 Paris",
-    "Mairie de Lille": "Place Augustin Laurent, 59000 Lille",
-    "Adresse Inconnue": "1 rue de Nullepart, 00000 Fantasia"
-  }
+  "id1": "157 boulevard MacDonald 75019 Paris",
+  "id2": "5 avenue Anatole France 75007 Paris"
 }'
 ```
 
@@ -101,20 +98,17 @@ curl -X POST "http://127.0.0.1:8000/coverage" \
 ```json
 {
   "results": {
-    "Tour Eiffel": {
+    "id1": {
       "orange": { "2G": true, "3G": true, "4G": true },
       "sfr": { "2G": true, "3G": true, "4G": true },
       "bouygues": { "2G": true, "3G": true, "4G": true },
       "free": { "2G": false, "3G": true, "4G": true }
     },
-    "Mairie de Lille": {
+    "id2": {
       "orange": { "2G": true, "3G": true, "4G": true },
       "sfr": { "2G": true, "3G": true, "4G": true },
       "bouygues": { "2G": true, "3G": true, "4G": true },
       "free": { "2G": false, "3G": true, "4G": true }
-    },
-    "Adresse Inconnue": {
-      "error": "Impossible de géocoder l'adresse : 1 rue de Nullepart, 00000 Fantasia"
     }
   }
 }
@@ -138,3 +132,4 @@ python debug_coverage.py
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+```

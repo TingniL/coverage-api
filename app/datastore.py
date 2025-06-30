@@ -8,7 +8,7 @@ from sklearn.neighbors import BallTree
 from functools import lru_cache
 from app.config import PARQUET_PATH, RADII
 
-EARTH_RADIUS_KM = 6371.0  # Rayon terrestre utilisé dans la distance haversine
+EARTH_RADIUS_KM = 6371.0
 
 @lru_cache
 def _load_trees():
@@ -31,13 +31,10 @@ def is_covered(lat: float, lon: float, operator: str, tech: str) -> bool:
     if tree is None:
         return False
 
-    # Convert query point to radians
     query_point_rad = np.radians([[lat, lon]])
 
-    # Convert coverage radius from km to radians
     radius_rad = RADII[tech] / EARTH_RADIUS_KM
 
-    # Find all points within radius
     idx = tree.query_radius(query_point_rad, r=radius_rad)
     
     return bool(idx[0].size)
