@@ -4,22 +4,19 @@ from app.coverage import compute_coverage
 from app.datastore import is_covered
 from app.config import RADII, OPERATORS
 
-# --- Configuration des Scénarios de Test ---
 
 # Scénario 1: Coordonnées exactes d'une antenne existante
-# Nous sélectionnons une antenne "free" au hasard depuis notre jeu de données.
-# Ce test doit toujours réussir car nous sommes au point exact de l'antenne.
+
 df = pd.read_parquet("data/towers.parquet")
 tour_free_existante = df[(df["operator"] == "free") & (df["is3g"] == 1) & (df["is4g"] == 1)].iloc[0]
 LAT_TEST_EXACT = tour_free_existante["lat"]
 LON_TEST_EXACT = tour_free_existante["lon"]
 
-# Scénario 2: Un point connu à Paris (devrait avoir une excellente couverture)
+# Scénario 2: Un point connu à Paris 
 LAT_TEST_PARIS = 48.8566
 LON_TEST_PARIS = 2.3522
 
-# Scénario 3: Un point dans une zone rurale (couverture potentiellement partielle)
-# Quelque part dans le parc naturel régional du Morvan
+# Scénario 3: Un point dans une zone rurale 
 LAT_TEST_RURAL = 47.0769
 LON_TEST_RURAL = 4.0203
 
@@ -44,7 +41,6 @@ async def run_test_scenario(nom_scenario: str, lat: float, lon: float):
     print(f"Couverture Free 4G ? -> {free_4g_covered}")
     print("-" * 20)
 
-    # Test de la fonction de haut niveau compute_coverage
     print("Étape 2: Test de la fonction compute_coverage (pour tous les opérateurs)")
     all_coverage = await compute_coverage(lat, lon)
 
@@ -67,7 +63,6 @@ async def main():
     """
     Fonction principale pour exécuter tous les scénarios de test.
     """
-    # Exécution séquentielle de chaque scénario
     await run_test_scenario(
         "Point Exact d'une Antenne Free",
         LAT_TEST_EXACT,
@@ -91,7 +86,5 @@ async def main():
 
 
 if __name__ == "__main__":
-    # La fonction compute_coverage étant asynchrone, nous utilisons asyncio.run
-    # Réinitialise le cache LRU avant de commencer pour garantir un chargement propre des données
     is_covered.cache_clear()
     asyncio.run(main()) 
