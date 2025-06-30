@@ -114,6 +114,23 @@ curl -X POST "http://127.0.0.1:8000/coverage" \
 }
 ```
 
+## Déploiement avec Docker
+
+Pour construire et lancer l'application avec Docker, assurez-vous d'avoir Docker installé et que le fichier `data/towers.parquet` a déjà été généré (voir l'étape 5 de l'installation).
+
+1.  **Construire l'image Docker :**  
+    À la racine du projet, exécutez la commande suivante pour construire l'image :
+    ```bash
+    docker build -t coverage-api .
+    ```
+
+2.  **Lancer le conteneur :**  
+    Une fois l'image construite, lancez un conteneur :
+    ```bash
+    docker run -p 8000:8000 coverage-api
+    ```
+    L'API sera alors accessible à l'adresse `http://127.0.0.1:8000`.
+
 ## Tests
 
 Pour exécuter la suite de tests automatisés, utilisez `pytest` :
